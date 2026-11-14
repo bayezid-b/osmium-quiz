@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Osmium Quiz AI</title>
+<style>
+:root{--bg:#0b1020;--panel:#141c31;--panel2:#1b2741;--line:#2b3958;--text:#f4f7ff;--muted:#aab6d0;--accent:#7c8cff;--accent2:#45d6b0;--danger:#ff7b88}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#202b52 0,#0b1020 45%);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:24px 16px 60px}.top{display:flex;align-items:center;gap:14px;margin-bottom:24px}.logo{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#7184ff,#46d7b5);display:grid;place-items:center;font-weight:900;font-size:22px;color:#081225}.brand h1{font-size:23px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}.pill{margin-left:auto;border:1px solid #326b60;color:#7af0cb;background:#102b2a;padding:6px 10px;border-radius:999px;font-size:12px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:linear-gradient(180deg,#17213a,#111a2e);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 14px 35px #0003}.card h2{font-size:17px;margin:0 0 8px}.sub{color:var(--muted);font-size:13px;margin:0 0 15px}
+textarea{width:100%;min-height:310px;resize:vertical;background:#0b1326;border:1px solid #344363;border-radius:12px;color:var(--text);padding:14px;font:14px/1.6 ui-monospace,monospace;outline:none}textarea:focus,input:focus{border-color:var(--accent)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}button{border:0;border-radius:11px;padding:11px 15px;font-weight:700;cursor:pointer;background:var(--accent);color:#081225}button.secondary{background:#273653;color:var(--text);border:1px solid #3b4c70}button.green{background:var(--accent2)}button:disabled{opacity:.5;cursor:not-allowed}
+.status{margin-top:12px;color:var(--muted);font-size:13px;min-height:22px}.status.error{color:#ff9aa4}.status.ok{color:#72e6c2}
+.results{margin-top:20px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.toolbar h2{margin:0;font-size:19px}.count{color:var(--muted);font-size:13px}
+.quiz{background:#111a2e;border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}.qhead{display:flex;justify-content:space-between;gap:10px;color:#9eafff;font-size:12px;font-weight:700;margin-bottom:8px}.question{font-weight:700;margin-bottom:12px}.option{padding:9px 11px;border:1px solid #33425f;border-radius:9px;margin:7px 0;color:#e2e9fa}.option.correct{border-color:#3dbd9c;background:#12352f;color:#9cf0d8}.explain{margin-top:12px;color:var(--muted);font-size:13px}.qbuttons{display:flex;gap:8px;margin-top:12px}.qbuttons button{padding:7px 10px;font-size:12px}
+.empty{border:1px dashed #3b4c70;border-radius:14px;padding:30px;text-align:center;color:var(--muted)}
+.note{margin-top:18px;color:var(--muted);font-size:12px}.full{grid-column:1/-1}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.wrap{padding:16px 12px 40px}.card{padding:16px}.pill{display:none}textarea{min-height:240px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">O</div>
+    <div class="brand"><h1>Osmium Quiz AI</h1><p>Paste MCQs · Generate · Preview · Export</p></div>
+    <div class="pill">AI QUIZ STUDIO</div>
+  </header>
+
+  <main class="layout">
+    <section class="card">
+      <h2>প্রশ্ন পেস্ট করুন</h2>
+      <p class="sub">একসঙ্গে অনেকগুলো MCQ পেস্ট করতে পারো। প্রশ্ন, অপশন ও উত্তর থাকলে AI সেগুলো সাজাবে।</p>
+      <textarea id="source" placeholder="উদাহরণ:
+বাংলাদেশের জাতীয় ফুল কোনটি?
+ক. গোলাপ
+খ. শাপলা
+গ. বেলি
+ঘ. জবা
+উত্তর: খ
+
+একইভাবে একাধিক প্রশ্ন পেস্ট করো..."></textarea>
+      <div class="actions">
+        <button id="generate" class="green">✨ Generate Quiz</button>
+        <button id="clear" class="secondary">Clear</button>
+      </div>
+      <div id="status" class="status" role="status"></div>
+      <p class="note">প্রাইভেসি: পেস্ট করা লেখা AI প্রসেসিংয়ের জন্য তোমার Cloudflare Worker হয়ে Gemini API-তে পাঠানো হবে। পাসওয়ার্ড বা গোপন তথ্য পেস্ট কোরো না।</p>
+    </section>
+
+    <section class="card">
+      <h2>কীভাবে ব্যবহার করবে</h2>
+      <p class="sub">AI ফলাফল যাচাই করে তারপর YouTube-এ ব্যবহার করো।</p>
+      <div class="empty">
+        <div style="font-size:34px">🧠</div>
+        <strong>তোমার Quiz এখানে তৈরি হবে</strong>
+        <p>Generate Quiz চাপলে প্রশ্ন, চারটি অপশন, সঠিক উত্তর ও ব্যাখ্যা দেখা যাবে।</p>
+      </div>
+      <div class="note">
+        <strong>Community:</strong> এখানে তৈরি করা কুইজ কপি করে YouTube Community Quiz পোস্টে বসাতে পারবে।<br><br>
+        <strong>Video:</strong> প্রশ্নগুলো ভিডিওর স্ক্রিপ্ট হিসেবে কপি বা JSON ফাইলে ডাউনলোড করতে পারবে।<br><br>
+        <strong>Bulk:</strong> একাধিক প্রশ্ন একসঙ্গে প্রসেস করা যাবে। বড় লেখা হলে কয়েক ভাগে পেস্ট করো।
+      </div>
+    </section>
+
+    <section class="card full results" id="results" hidden>
+      <div class="toolbar">
+        <div><h2>তোমার তৈরি কুইজ</h2><div class="count" id="count"></div></div>
+        <div class="actions" style="margin:0">
+          <button class="secondary" id="copyAll">Copy all</button>
+          <button class="secondary" id="downloadJson">Download JSON</button>
+          <button class="secondary" id="downloadText">Download TXT</button>
+        </div>
+      </div>
+      <div id="quizList"></div>
+    </section>
+  </main>
+</div>
+<script>
+const API_URL = "https://osmium-quiz-api.bbayezid71.workers.dev/";
+let quizzes = [];
+const $ = (id) => document.getElementById(id);
+const status = (message, kind="") => { $("status").textContent = message; $("status").className = "status " + kind; };
+
+function normalizeResult(data) {
+  // Worker currently returns { success: true, quizzes: { quizzes: [...] } }
+  let list = data?.quizzes?.quizzes ?? data?.quizzes ?? data?.data?.quizzes ?? [];
+  if (!Array.isArray(list) && Array.isArray(list?.questions)) list = list.questions;
+  if (!Array.isArray(list)) throw new Error("AI response format বুঝতে পারিনি। আবার চেষ্টা করো।");
+  return list.map((q) => ({
+    question: String(q.question ?? q.prompt ?? ""),
+    options: Array.isArray(q.options) ? q.options.map(String) : [],
+    correctAnswer: String(q.correctAnswer ?? q.answer ?? ""),
+    explanation: String(q.explanation ?? "")
+  })).filter(q => q.question);
+}
+function quizText(q, i) {
+  const letters = ["A","B","C","D","E","F"];
+  return `${i+1}. ${q.question}\n${q.options.map((o,j)=>`${letters[j] || j+1}. ${o}`).join("\n")}\nসঠিক উত্তর: ${q.correctAnswer || "যাচাই প্রয়োজন"}\nব্যাখ্যা: ${q.explanation || "—"}`;
+}
+function render() {
+  $("results").hidden = false;
+  $("count").textContent = `${quizzes.length}টি প্রশ্ন তৈরি হয়েছে`;
+  const list = $("quizList");
+  list.replaceChildren();
+  quizzes.forEach((q,i) => {
+    const card = document.createElement("article"); card.className = "quiz";
+    const head = document.createElement("div"); head.className = "qhead"; head.textContent = `QUESTION ${String(i+1).padStart(2,"0")}`;
+    const question = document.createElement("div"); question.className = "question"; question.textContent = q.question;
+    card.append(head, question);
+    q.options.forEach((option) => {
+      const el = document.createElement("div"); el.className = "option" + (q.correctAnswer && (option.trim() === q.correctAnswer.trim()) ? " correct" : "");
+      el.textContent = option; card.append(el);
+    });
+    const answer = document.createElement("div"); answer.className = "explain"; answer.textContent = `সঠিক উত্তর: ${q.correctAnswer || "যাচাই প্রয়োজন"}${q.explanation ? " · ব্যাখ্যা: " + q.explanation : ""}`;
+    card.append(answer);
+    const actions = document.createElement("div"); actions.className = "qbuttons";
+    const copy = document.createElement("button"); copy.className = "secondary"; copy.textContent = "Copy question";
+    copy.onclick = async () => { await navigator.clipboard.writeText(quizText(q,i)); copy.textContent="Copied!"; setTimeout(()=>copy.textContent="Copy question",1200); };
+    actions.append(copy); card.append(actions); list.append(card);
+  });
+}
+$("generate").addEventListener("click", async () => {
+  const text = $("source").value.trim();
+  if (!text) return status("আগে প্রশ্ন ও অপশন পেস্ট করো।", "error");
+  $("generate").disabled = true; status("AI প্রশ্নগুলো বিশ্লেষণ করছে…");
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+    const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.details || data.error || `Request failed (${response.status})`);
+    quizzes = normalizeResult(data);
+    if (!quizzes.length) throw new Error("কোনো প্রশ্ন পাওয়া যায়নি। ইনপুটটি পরীক্ষা করো।");
+    render(); status(`সফল! ${quizzes.length}টি প্রশ্ন তৈরি হয়েছে। উত্তরগুলো একবার যাচাই করে নাও।`, "ok");
+    $("results").scrollIntoView({behavior:"smooth",block:"start"});
+  } catch (err) {
+    status("সমস্যা: " + err.message, "error");
+  } finally { $("generate").disabled = false; }
+});
+$("clear").onclick = () => { $("source").value=""; status(""); };
+$("copyAll").onclick = async () => {
+  await navigator.clipboard.writeText(quizzes.map(quizText).join("\n\n--------------------\n\n"));
+  status("সব প্রশ্ন কপি হয়েছে।", "ok");
+};
+function download(name, content, type) {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download=name; a.click();
+  URL.revokeObjectURL(url);
+}
+$("downloadJson").onclick = () => download("osmium-quizzes.json", JSON.stringify({quizzes},null,2), "application/json");
+$("downloadText").onclick = () => download("osmium-quizzes.txt", quizzes.map(quizText).join("\n\n--------------------\n\n"), "text/plain;charset=utf-8");
+</script>
+</body>
+</html>
